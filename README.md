@@ -7,8 +7,8 @@ Making a five-finger robotic hand (Inspire RH56) walk on its index and middle fi
 ```
 docker/Dockerfile                      Gazebo Harmonic on Ubuntu 24.04
 docker-compose.yml                     builds the image and opens the Gazebo window
-gazebo/models/inspire_hand_right/      the hand as a Gazebo model (URDF + meshes)
-gazebo/worlds/hand_display.sdf         display scene: ground, light, mounted hand
+gazebo/models/inspire_hand_right/      the hand as a Gazebo model (upstream URDF + meshes)
+gazebo/worlds/hand_display.sdf         display scene: ground, light, hand
 roadmap.md                             project plan
 ```
 
@@ -21,7 +21,7 @@ docker compose build      # first time only, ~10 min
 docker compose up         # opens the Gazebo window
 ```
 
-The world starts paused, so the hand stays in its zero pose. Pressing play runs physics; the hand is fixed to the world at the base, but the unactuated fingers will droop under gravity.
+The world starts paused, so the hand stays upright in its zero pose. The hand is not fixed to anything, so pressing play lets it fall over onto the ground.
 
 Close the window or press `Ctrl+C` to stop. Run `docker compose down` to remove the container.
 
@@ -35,6 +35,8 @@ docker compose run --rm gazebo bash
 
 ## Hand model
 
-`gazebo/models/inspire_hand_right/model.urdf` comes from [dex-urdf](https://github.com/dexsuite/dex-urdf) (`robots/hands/inspire_hand/inspire_hand_right.urdf`, MIT licence, see `LICENSE.txt` in that folder). There are two changes: mesh paths now use `model://` URIs, and a fixed `world_joint` mounts the base for display. Delete the `world` link and `world_joint` to get a free-floating hand.
+`gazebo/models/inspire_hand_right/inspire_hand_right.urdf` is copied unchanged from [dex-urdf](https://github.com/dexsuite/dex-urdf) (`robots/hands/inspire_hand/inspire_hand_right.urdf`, commit `f5e7132`, MIT licence, see `LICENSE.txt` in that folder), together with the right-hand meshes. Gazebo resolves its relative `meshes/...` paths against the model folder.
+
+The world uses the bullet-featherstone physics engine rather than Gazebo's default DART. DART ignores the hand's collision meshes because they have no vertex normals, and it does not enforce the URDF mimic joints.
 
 Joints: 6 actuated (`thumb_proximal_yaw`, `thumb_proximal_pitch`, `index_proximal`, `middle_proximal`, `ring_proximal`, `pinky_proximal`). Each finger's `*_intermediate_joint` mimics its proximal joint. For walking we only use `index_proximal_joint` and `middle_proximal_joint`, with their intermediate joints coupled.
