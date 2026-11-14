@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Training outputs
+runs/
+logs/
+checkpoints/
+wandb/
+*.zip
+
+# Gazebo / editor
+.gz/
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

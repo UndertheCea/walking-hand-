@@ -1,0 +1,20 @@
+# Runs Gazebo in Docker and shows its window on the host display.
+#
+# Windows 11 (Docker Desktop + WSLg): works with the defaults below.
+# Linux host: run `xhost +local:docker`, then
+#   X11_DIR=/tmp/.X11-unix docker compose up
+services:
+  gazebo:
+    build: ./docker
+    image: walking-hand-gazebo:harmonic
+    volumes:
+      - .:/workspace
+      - ${X11_DIR:-/run/desktop/mnt/host/wslg/.X11-unix}:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY_NUM:-:0}
+      - QT_QPA_PLATFORM=xcb
+      # Software OpenGL (Mesa llvmpipe). GPU passthrough into Docker on
+      # Windows is unreliable; the display scene is light enough for CPU.
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - GZ_SIM_RESOURCE_PATH=/workspace/gazebo/models
+    command: gz sim -v 3 /workspace/gazebo/worlds/hand_display.sdf
