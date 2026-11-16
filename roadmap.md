@@ -92,3 +92,15 @@ Decision: _not yet made_
 ## Planned stack
 
 Python, MuJoCo, Gymnasium, Stable-Baselines3 (PPO), NumPy, Matplotlib.
+
+## Workflow
+
+See `CLAUDE.md`. In short: never push to `main`; env changes go through their own `[ENV]` PR and are logged below; training branches rebase onto `main` after every env change.
+
+## Env changelog
+
+Newest first. Every env change adds an entry here (see `CLAUDE.md`, rule 3).
+
+| Date | Env version | Change | Action for training branches |
+| --- | --- | --- | --- |
+| 2026-11-16 | `WalkingHand-v0`, `WalkingHandTactile-v0` | First version: Thing hand, MuJoCo 3.17.0, 6 position actuators, 28-D obs (+2 tactile), forward-velocity reward, fall termination, friction and push options (commit `3fc4138`). | None (first version). |
