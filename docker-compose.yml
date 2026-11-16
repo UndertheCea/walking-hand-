@@ -18,4 +18,6 @@ services:
       # Software OpenGL (Mesa llvmpipe). GPU passthrough into Docker on
       # Windows is unreliable; the hand scene is light enough for CPU.
       - LIBGL_ALWAYS_SOFTWARE=1
+      # Makes the walking_hand package importable from the mounted repo.
+      - PYTHONPATH=/workspace
     command: python scripts/view.py models/thing_hand/scene.xml

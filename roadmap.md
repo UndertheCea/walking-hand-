@@ -34,7 +34,8 @@ Decision: _not yet made_
 - [ ] Actuators: the model currently uses MuJoCo position actuators (`kp=8`, `kv=0.15`, force limit ±1). For the baseline's impedance law to run in Python, switch to torque (`motor`) actuators with the same limits so all three controllers share one low-level path.
 - [x] Fingertip contact-force sensors (`index_touch`, `middle_touch`).
 - [x] Settable floor friction (`floor` geom in `scene.xml`).
-- [ ] Gymnasium env: reset, step, fall check (palm height and pitch thresholds), hook for applying external pushes.
+- [x] Gymnasium env (`walking_hand/`, `WalkingHand-v0` and `WalkingHandTactile-v0`): reset, step, fall check (palm height and tilt), friction randomization, external pushes.
+- [ ] A statically stable start pose. Holding the current `stand` keyframe, the hand falls within about 0.3 s.
 - [ ] Agree on the env interface (observation, action, info fields) in the first few days so the other phases can start in parallel.
 
 ### Phase 2: Classical baseline (~1 week, overlaps Phase 1)
