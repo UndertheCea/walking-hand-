@@ -19,6 +19,8 @@ A MuJoCo "Thing" hand (`models/thing_hand/`) walks on its index and middle finge
 - All work happens on a branch and reaches `main` through a pull request.
 - Do not `git push origin main`, do not force-push `main`, and do not merge your own PR without the agreement of another team member.
 - Before opening a PR, rebase onto the latest `main` (`git fetch origin && git rebase origin/main`).
+- A PR can be merged only when CI is green (see **CI** below).
+- After a merge, the PR's branch is deleted on GitHub automatically. Clean up locally with `git switch main && git pull && git fetch --prune && git branch -d <branch>`. Start new work from a fresh branch off `main` instead of reusing a merged one.
 
 ### 3. Env changes get their own branch and PR
 
@@ -45,10 +47,28 @@ Rules for env changes:
 - Results trained on an older env version are not comparable with newer ones. Record the env id (for example `WalkingHand-v1`) and the `main` commit with every saved model and results file, and retrain or clearly label old results after an env bump.
 - Pure RL and tactile RL must always be compared on the same env version with the same settings.
 
+## CI (`.github/workflows/`)
+
+| Workflow | Runs on | What it does |
+| --- | --- | --- |
+| `ci.yml`, job **Model and env checks** | every PR and push to `main` | installs `requirements.txt`, byte-compiles the code, runs `models/thing_hand/check_joints.py` and `scripts/check_env.py` (~2 min) |
+| `ci.yml`, job **Env change rules** | every PR | if env files changed: fails unless the title starts with `[ENV]`, `roadmap.md` changed (changelog entry), and no training files are mixed in. Docs (`*.md`) and `.github/` count as neither side. |
+| `docker.yml` | PRs and pushes touching `docker/`, `requirements.txt`, `docker-compose.yml`, `.dockerignore` | builds the image and runs the env checks inside it with offscreen rendering |
+| `delete-merged-branch.yml` | PR merged | deletes the PR's branch |
+
+Run the same checks locally before pushing:
+
+```bash
+docker compose run --rm -w /workspace/models/thing_hand mujoco python check_joints.py
+docker compose run --rm mujoco python -W ignore scripts/check_env.py
+```
+
+If you add a new script that is part of the env tooling rather than training, add it to `env_re` in `ci.yml`.
+
 ## Working in the repo
 
-- Everything runs in Docker. Build once with `docker compose build`, then:
-  - viewer: `docker compose up`
+- Everything runs in Docker (Windows 11 shows the viewer through WSLg; on Linux run `xhost +local:docker` and set `X11_DIR=/tmp/.X11-unix`). Build once with `docker compose build`, then:
+  - viewer: `docker compose up` (starts in the `stand` keyframe; `scripts/view.py models/thing_hand/scene_inspect.xml` for the fixed, zero-gravity hand)
   - shell: `docker compose run --rm mujoco bash`
   - env checks: `docker compose run --rm mujoco python -W ignore scripts/check_env.py`
   - offscreen rendering: add `-e MUJOCO_GL=osmesa`
