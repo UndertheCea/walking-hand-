@@ -95,7 +95,7 @@ Python, MuJoCo, Gymnasium, Stable-Baselines3 (PPO), NumPy, Matplotlib.
 
 ## Workflow
 
-See `CLAUDE.md`. In short: never push to `main`; env changes go through their own `[ENV]` PR and are logged below; training branches rebase onto `main` after every env change.
+See `CLAUDE.md`. In short: never push to `main`; env changes go through their own `[ENV]` PR and are logged below; training branches rebase onto `main` after every env change. CI (GitHub Actions) runs the model and env checks on every PR, enforces the `[ENV]` rules, and deletes branches after merge.
 
 ## Env changelog
 

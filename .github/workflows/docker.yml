@@ -1,0 +1,36 @@
+name: Docker image
+
+# Only runs when the container setup changes; the image build takes a few minutes.
+on:
+  pull_request:
+    paths:
+      - docker/**
+      - requirements.txt
+      - docker-compose.yml
+      - .dockerignore
+  push:
+    branches: [main]
+    paths:
+      - docker/**
+      - requirements.txt
+      - docker-compose.yml
+      - .dockerignore
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build image and run env checks inside it
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f docker/Dockerfile -t walking-hand-mujoco:ci .
+      - name: Env checks with offscreen rendering
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace \
+            -e PYTHONPATH=/workspace -e MUJOCO_GL=osmesa \
+            walking-hand-mujoco:ci \
+            python -W ignore scripts/check_env.py --render /tmp/frame.png

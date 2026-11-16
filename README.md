@@ -16,42 +16,6 @@ scripts/check_env.py         API checks and sample rollouts for the environments
 roadmap.md                   project plan
 ```
 
-## Open the hand in the MuJoCo viewer
-
-Requirements: Docker Desktop. On Windows 11 the window is shown through WSLg, which is built in, so no X server needs to be installed.
-
-```bash
-docker compose build      # first time only, a few minutes
-docker compose up         # opens the viewer on models/thing_hand/scene.xml
-```
-
-The viewer starts in the `stand` keyframe with physics running. The hand cannot hold that pose by itself and tips over within about two seconds. Press `Backspace` to reset, or use the viewer's Simulation panel to pause and load keyframes.
-
-To inspect the joints with the hand bolted in the air and gravity off, drag the sliders in the viewer's Control panel:
-
-```bash
-docker compose run --rm mujoco python scripts/view.py models/thing_hand/scene_inspect.xml
-```
-
-Linux host: run `xhost +local:docker` once, then prefix the commands with `X11_DIR=/tmp/.X11-unix`.
-
-### Without a display
-
-Render a frame to a PNG (here after 1 s of simulation):
-
-```bash
-docker compose run --rm -e MUJOCO_GL=osmesa mujoco \
-    python scripts/render.py models/thing_hand/scene.xml out.png --seconds 1
-```
-
-Run the model's joint and actuator checks:
-
-```bash
-docker compose run --rm -w /workspace/models/thing_hand mujoco python check_joints.py
-```
-
-For a shell inside the container: `docker compose run --rm mujoco bash`.
-
 ## Gymnasium environments (`walking_hand/`)
 
 ```python

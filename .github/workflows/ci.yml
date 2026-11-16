@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Model and env checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Byte-compile Python sources
+        run: python -m compileall -q walking_hand scripts models/thing_hand
+      - name: Hand model joint checks
+        working-directory: models/thing_hand
+        run: python check_joints.py
+      - name: Gymnasium env checks
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -W ignore scripts/check_env.py
+
+  env-guard:
+    name: Env change rules (CLAUDE.md rule 3)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check env-change rules
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE"..."$HEAD")
+          echo "Changed files:"; echo "$changed" | sed 's/^/  /'
+
+          # Env side: anything that changes the simulation or the env, plus the env tooling scripts.
+          env_re='^(models/|walking_hand/|docker/|requirements\.txt$|docker-compose\.yml$|\.dockerignore$|scripts/(check_env|view|render)\.py$)'
+          # Docs and CI belong to neither side.
+          docs_re='(\.md$|^\.github/)'
+          env_files=$(echo "$changed" | grep -E "$env_re" || true)
+          other_files=$(echo "$changed" | grep -Ev "$env_re" | grep -Ev "$docs_re" | grep -v '^$' || true)
+
+          if [ -z "$env_files" ]; then
+            echo "No env files changed: nothing to enforce."
+            exit 0
+          fi
+
+          fail=0
+          echo "Env files changed:"; echo "$env_files" | sed 's/^/  /'
+          case "$TITLE" in
+            "[ENV]"*) ;;
+            *) echo "::error::This PR changes the env, so its title must start with [ENV]."; fail=1 ;;
+          esac
+          if ! echo "$changed" | grep -qx 'roadmap.md'; then
+            echo "::error::Env changes must add an entry to the Env changelog in roadmap.md."
+            fail=1
+          fi
+          if [ -n "$other_files" ]; then
+            echo "::error::Do not mix env and training changes in one PR. Move these to a separate PR:"
+            echo "$other_files" | sed 's/^/  /'
+            fail=1
+          fi
+          exit $fail
