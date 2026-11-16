@@ -1,0 +1,22 @@
+<mujoco model="thing_hand scene">
+  <include file="thing_hand.xml"/>
+  <statistic center="0.05 0 0.05" extent="0.3"/>
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.35 0.35 0.35" specular="0 0 0"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+  <worldbody>
+    <light pos="0.3 -0.3 1.2" dir="-0.2 0.2 -1" directional="true"/>
+    <!-- Floor friction (first number) is the knob for the friction experiments. -->
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" friction="1.0 0.005 0.0001"/>
+  </worldbody>
+  <keyframe>
+    <key name="stand" qpos="0.0000 0.0000 0.1220 0.9239 0.0000 0.3827 0.0000 0.0000 0.3000 0.8500 0.5950 0.0000 1.0000 0.6000 0.4200" ctrl="0.0000 0.3000 0.8500 0.0000 1.0000 0.6000"/>
+  </keyframe>
+</mujoco>

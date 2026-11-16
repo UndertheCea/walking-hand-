@@ -16,9 +16,9 @@ The question we want to answer: how much does tactile feedback help learned walk
 
 ## Open decision: single-finger support
 
-With a planar floating palm and two fingers, the hand rests on one fingertip whenever the other finger swings. That is a point contact, so the palm pitches over unless something else supports it. We need to pick one before building the model:
+With two fingers, the hand rests on one fingertip whenever the other finger swings. That is a point contact, so the palm tips over unless something else supports it. The Thing hand already shows this: started in its `stand` keyframe with the fingers holding position, it falls onto its side within about 2 s. We need to pick one:
 
-- **Palm heel drags on the ground (recommended).** The wrist is a passive third support and the fingers pull the hand forward. It is statically stable, so the fixed-gait baseline can work.
+- **Palm heel or forearm stub drags on the ground (recommended).** The wrist is a passive third support and the fingers pull the hand forward. It is statically stable, so the fixed-gait baseline can work. In the Thing hand this is `STUB_CONTACT = True` in `build_hand.py`.
 - **Dynamic gait with no drag.** Much harder. The open-loop baseline will probably fall, which makes the comparison less informative.
 
 Decision: _not yet made_
@@ -27,12 +27,13 @@ Decision: _not yet made_
 
 ### Phase 1: Model and environment (~1 week)
 
-- [ ] Choose the hand model: Shadow Hand from MuJoCo Menagerie, or a simplified hand-written MJCF. Check whether the chosen model already couples the distal joints (we assume two actuated coordinates per active finger).
-- [ ] Planar setup: palm has x-slide, z-slide and pitch-hinge joints only.
-- [ ] Lock the thumb, ring and little fingers in a folded pose.
-- [ ] Torque actuators with joint and torque limits. The impedance law is computed in Python so all three controllers share one low-level path.
-- [ ] Fingertip contact-force sensors.
-- [ ] Settable floor friction.
+- [x] Hand model: the "Thing" hand (`models/thing_hand/`, MJCF built from the MakeHuman mesh). Index and middle each have 3 actuated joints (MCP abduction, MCP flexion, PIP flexion), and DIP is coupled to PIP at 0.7.
+- [x] MuJoCo 3.17.0 in Docker, with the interactive viewer and offscreen rendering.
+- [ ] Base: the Thing hand has a 6-DOF free base (3D). Decide whether to keep it or constrain it to planar (x-slide, z-slide, pitch hinge) as in the proposal.
+- [x] Thumb, ring and little fingers fixed in a curled pose.
+- [ ] Actuators: the model currently uses MuJoCo position actuators (`kp=8`, `kv=0.15`, force limit ±1). For the baseline's impedance law to run in Python, switch to torque (`motor`) actuators with the same limits so all three controllers share one low-level path.
+- [x] Fingertip contact-force sensors (`index_touch`, `middle_touch`).
+- [x] Settable floor friction (`floor` geom in `scene.xml`).
 - [ ] Gymnasium env: reset, step, fall check (palm height and pitch thresholds), hook for applying external pushes.
 - [ ] Agree on the env interface (observation, action, info fields) in the first few days so the other phases can start in parallel.
 
@@ -47,7 +48,7 @@ Decision: _not yet made_
 ### Phase 3: RL training (~1.5 weeks)
 
 - [ ] PPO from Stable-Baselines3 with parallel CPU envs.
-- [ ] Action: four joint targets (or offsets), passed through the same impedance layer and limits as the baseline.
+- [ ] Action: six joint targets (or offsets), passed through the same impedance layer and limits as the baseline.
 - [ ] Pure RL observations: joint positions and velocities, palm height, pitch and their velocities, previous action.
 - [ ] Tactile RL observations: the same, plus fingertip contact forces. Nothing else differs.
 - [ ] Reward: forward velocity and alive bonus, minus penalties on torque, action rate and palm pitch.

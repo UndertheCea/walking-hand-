@@ -1,26 +1,16 @@
-# Gazebo Harmonic (LTS) on Ubuntu 24.04.
-# Build and run through docker-compose.yml at the repo root.
-FROM ubuntu:24.04
+# MuJoCo + Python. Build and run through docker-compose.yml at the repo root.
+FROM python:3.12-slim-bookworm
 
-ENV DEBIAN_FRONTEND=noninteractive
-
+# OpenGL and X11 libraries for the interactive viewer (GLFW), plus OSMesa and
+# EGL for offscreen rendering (MUJOCO_GL=osmesa or egl).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates curl gnupg lsb-release \
-    && curl -fsSL https://packages.osrfoundation.org/gazebo.gpg \
-        -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
-        > /etc/apt/sources.list.d/gazebo-stable.list \
-    && apt-get update && apt-get install -y --no-install-recommends \
-        gz-harmonic \
-        python3-gz-sim8 python3-gz-transport13 python3-gz-msgs10 \
-        libgl1-mesa-dri mesa-utils x11-apps \
-        libqt5svg5 qml-module-qtquick-dialogs \
+        libgl1 libglx-mesa0 libgl1-mesa-dri libegl1 libosmesa6 \
+        libx11-6 libxext6 libxrandr2 libxinerama1 libxcursor1 libxi6 \
+        libxxf86vm1 libxkbcommon0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Models in gazebo/models are found by `model://<name>` URIs.
-ENV GZ_SIM_RESOURCE_PATH=/workspace/gazebo/models
-ENV XDG_RUNTIME_DIR=/tmp/runtime-root
-RUN mkdir -p /tmp/runtime-root && chmod 700 /tmp/runtime-root
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --root-user-action=ignore -r /tmp/requirements.txt
 
 WORKDIR /workspace
 CMD ["bash"]
