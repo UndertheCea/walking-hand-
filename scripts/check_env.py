@@ -35,14 +35,14 @@ def main():
     ap.add_argument("--render", default=None, help="save a frame from rgb_array rendering")
     args = ap.parse_args()
 
-    for env_id in ["WalkingHand-v0", "WalkingHandTactile-v0"]:
+    for env_id in ["WalkingHand-v1", "WalkingHandTactile-v1"]:
         env = gym.make(env_id)
         check_env(env.unwrapped, skip_render_check=True)
         print(f"{env_id}: check_env passed, obs {env.observation_space.shape}, act {env.action_space.shape}")
         env.close()
 
     # Identical physics across the two variants.
-    a, b = gym.make("WalkingHand-v0"), gym.make("WalkingHandTactile-v0")
+    a, b = gym.make("WalkingHand-v1"), gym.make("WalkingHandTactile-v1")
     oa, _ = a.reset(seed=3)
     ob, _ = b.reset(seed=3)
     rng = np.random.default_rng(0)
@@ -53,7 +53,7 @@ def main():
     same = np.allclose(oa, ob[: len(oa)]) and np.isclose(ra, rb)
     print(f"same seed + actions -> identical physics: {same}; tactile extra obs = {ob[len(oa):].round(3)}")
 
-    env = gym.make("WalkingHandTactile-v0")
+    env = gym.make("WalkingHandTactile-v1")
     hold = lambda obs: obs[22:28]  # previous action = keep the current targets
     rng = np.random.default_rng(1)
     rand = lambda obs: rng.uniform(-1, 1, 6)
@@ -66,7 +66,7 @@ def main():
     _, info = env.reset(seed=0, options={"friction": 0.3})
     print(f"reset(options={{'friction': 0.3}}) -> floor friction {info['friction']}")
 
-    pushed = gym.make("WalkingHand-v0", push_force_range=(0.5, 1.0), push_interval_range=(0.2, 0.4))
+    pushed = gym.make("WalkingHand-v1", push_force_range=(0.5, 1.0), push_interval_range=(0.2, 0.4))
     pushed.reset(seed=0)
     n_push = sum(pushed.step(np.zeros(6))[4]["pushing"] for _ in range(50))
     print(f"push test: pushing on {n_push}/50 steps")
@@ -74,7 +74,7 @@ def main():
     if args.render:
         from render import write_png  # scripts/render.py
 
-        r = gym.make("WalkingHand-v0", render_mode="rgb_array")
+        r = gym.make("WalkingHand-v1", render_mode="rgb_array")
         r.reset(seed=0)
         write_png(args.render, r.render())
         print(f"wrote {args.render}")

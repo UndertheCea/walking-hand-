@@ -4,8 +4,8 @@
   deformed with MuJoCo <skin> using the MakeHuman default rig weights.
   Frame: x = finger direction / walking direction, y = thumb side, z = back of hand (up).
   Actuated: index & middle, each with MCP abduction (side-to-side), MCP flexion and PIP flexion (6 motors).
-  DIP = 0.7 * PIP (linkage coupling). Base: 6-DOF free joint (3D, can roll/pitch/yaw);
-  thing_hand_fixed.xml is the same hand bolted in the air (no base joint) for inspection.
+  DIP = 0.7 * PIP (linkage coupling). Base: planar (slide x, slide z, hinge pitch) so
+  two-fingertip support can be statically stable; thing_hand_fixed.xml is bolted for inspection.
   Unactuated: thumb, ring, pinky are rigidly fixed to the palm (no joints) in a curled pose.
 -->
 <mujoco model="thing_hand">
@@ -31,8 +31,11 @@
   </asset>
 
   <worldbody>
-    <body name="base" pos="0 0 0.122" quat="0.92388 0 0.38268 0" childclass="hand">
-      <freejoint name="root"/>
+    <body name="base" childclass="hand">
+      <!-- Planar walking plane: +x forward, +z up, pitch about +y. -->
+      <joint name="root_x" type="slide" axis="1 0 0" damping="0"/>
+      <joint name="root_z" type="slide" axis="0 0 1" damping="0"/>
+      <joint name="root_pitch" type="hinge" axis="0 1 0" range="-1.2 1.2" damping="0.02"/>
       <body name="palm">
         <site name="imu" pos="0.0456 -0.0078 -0.0031" size="0.005"/>
         <geom name="palm_col" class="col" type="box" size="0.0456 0.0408 0.0166" pos="0.0456 -0.0078 -0.0031" mass="0.17"/>

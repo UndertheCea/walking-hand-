@@ -9,7 +9,7 @@ docker/Dockerfile            Python 3.12 + MuJoCo 3.17.0, with GUI and offscreen
 docker-compose.yml           builds the image and opens the MuJoCo viewer
 requirements.txt             Python dependencies installed in the image
 models/thing_hand/           the "Thing" hand model (MJCF) and its scenes
-walking_hand/                Gymnasium environments (WalkingHand-v0, WalkingHandTactile-v0)
+walking_hand/                Gymnasium environments (WalkingHand-v1, WalkingHandTactile-v1)
 scripts/view.py              open a scene in the interactive viewer, starting from a keyframe
 scripts/render.py            render a scene offscreen to a PNG
 scripts/check_env.py         API checks and sample rollouts for the environments
@@ -22,7 +22,7 @@ roadmap.md                   project plan
 import gymnasium as gym
 import walking_hand  # registers the envs
 
-env = gym.make("WalkingHandTactile-v0")              # or "WalkingHand-v0"
+env = gym.make("WalkingHandTactile-v1")              # or "WalkingHand-v1" (v0 aliases exist)
 obs, info = env.reset(seed=0)
 obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
 ```
@@ -37,13 +37,13 @@ Both ids use the same class, `ThingHandWalkEnv`, and differ only in the observat
 | Reward | `20·vx + 0.05 alive − 1e-3·Σtorque² − 1e-2·Σ(Δaction)² − 0.1·(1 − upright)`; `vx` is the base's forward (+x) velocity. All weights are constructor arguments. |
 | Termination | palm height < 3 cm, or the back of the hand tilts more than about 72° from vertical (`upright < 0.3`) |
 | Truncation | 1000 steps (20 s) |
-| Start | `stand` keyframe plus ±0.02 rad joint noise |
+| Start | two-finger `stand` keyframe (planar base, CoM between tips) plus ±0.02 rad joint noise |
 
 Options for the experiments (pass to `gym.make` as keywords):
 
 - `friction_range=(0.3, 1.5)` randomizes floor friction each reset. `env.reset(options={"friction": 0.2})` sets it exactly, for evaluation on unseen values.
 - `push_force_range=(0.2, 0.8)` applies horizontal pushes (N) to the palm every 1–3 s (`push_interval_range`) for 0.1 s (`push_duration`). `info["pushing"]` marks the pushed steps.
-- `stub_contact=True` lets the forearm stub touch the floor as a third support.
+- `stub_contact=True` lets the forearm stub touch the floor as a third support (default is off).
 - `render_mode="rgb_array"` for video frames (`MUJOCO_GL=osmesa` in the container), or `"human"` for the live viewer.
 
 `info` carries `x_position`, `x_velocity`, `palm_height`, `upright`, `touch`, `friction` and each reward term.
@@ -54,7 +54,7 @@ Check everything with:
 docker compose run --rm mujoco python -W ignore scripts/check_env.py
 ```
 
-Current behaviour: holding the `stand` pose, the hand falls over within about 0.3 s (14–17 steps), so a policy has to balance from the first step. The `stand` keyframe is not statically balanced.
+Current behaviour: holding the `stand` pose on the planar base, the hand stays up for the full 20 s episode (two fingertips, straighter legs, palm ~10 cm) with `stub_contact=False`.
 
 ## The Thing hand (`models/thing_hand/`)
 
@@ -69,7 +69,7 @@ A realistic right hand built from the MakeHuman base mesh (CC0, see `LICENSE_mak
 | `build_hand.py` | regenerates the four XML files from MakeHuman data (`python build_hand.py <makehuman/data> <out dir>`) |
 | `check_joints.py` | joint, contact and actuator sanity checks |
 
-Frame: x is the finger and walking direction, y the thumb side, z the back of the hand.
+Frame: x is the finger and walking direction, y the thumb side, z the back of the hand. The free-hand model uses a **planar base** (slide x, slide z, hinge pitch).
 
 Actuated: index and middle fingers, each with MCP abduction, MCP flexion and PIP flexion, so 6 position actuators (`kp=8`, `kv=0.15`, force limit ±1). Each DIP joint is coupled to its PIP joint at 0.7 through an equality constraint. Thumb, ring and pinky are rigid and curled.
 

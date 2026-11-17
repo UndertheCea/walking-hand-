@@ -111,6 +111,8 @@ MASS = {
     "passive": (0.004, 0.003, 0.002),  # thumb/ring/pinky (rigid): hollow shells
 }
 STUB_CONTACT = False   # False: only fingertips (and fingers) touch the ground; True: forearm stub acts as a tail
+# Planar base (x, z, pitch) makes two-fingertip double-support statically stable.
+PLANAR_BASE = True
 COUPLE = 0.7
 
 def finger_xml(fname, i, indent):
@@ -293,23 +295,29 @@ xml = f"""<!--
   </sensor>
 </mujoco>
 """
-QPITCH = "0.92388 0 0.38268 0"   # palm pitched 45 deg nose-down
-open(os.path.join(out, "thing_hand.xml"), "w").write(
-    xml.replace("@BASE@", f'pos="0 0 0.122" quat="{QPITCH}"').replace("@ROOTJOINT@", '      <freejoint name="root"/>'))
+QPITCH = "0.92388 0 0.38268 0"   # palm pitched 45 deg nose-down (fixed inspection only)
+PLANAR_ROOT = """      <joint name="root_x" type="slide" axis="1 0 0" damping="0"/>
+      <joint name="root_z" type="slide" axis="0 0 1" damping="0"/>
+      <joint name="root_pitch" type="hinge" axis="0 1 0" range="-1.2 1.2" damping="0.02"/>"""
+if PLANAR_BASE:
+    open(os.path.join(out, "thing_hand.xml"), "w").write(
+        xml.replace("@BASE@", "").replace("@ROOTJOINT@", PLANAR_ROOT))
+else:
+    open(os.path.join(out, "thing_hand.xml"), "w").write(
+        xml.replace("@BASE@", f'pos="0 0 0.122" quat="{QPITCH}"').replace("@ROOTJOINT@", '      <freejoint name="root"/>'))
 open(os.path.join(out, "thing_hand_fixed.xml"), "w").write(
     xml.replace("@BASE@", f'pos="0 0 0.30" quat="{QPITCH}"').replace("@ROOTJOINT@", "      <!-- base fixed to the world (inspection) -->")
        .replace('<mujoco model="thing_hand">', '<mujoco model="thing_hand_fixed">'))
 
-# qpos order: root(3), then joints in tree order: thumb, index, middle, ring, pinky (3 each)
-# Nominal double-support stance (found by search + checked in sim with STUB_CONTACT=False):
-# palm pitched 45 deg nose-down, index tip 1.5 cm ahead of the COM, middle tip 1.5 cm behind;
-# chosen to maximize the margin to joint limits (>= 0.6 rad on every actuated joint).
+# Tall two-finger stand (search + ≥20 s hold with STUB_CONTACT=False, planar base):
+# straighter PIP (extended legs), CoM between tips, palm ~10 cm off the floor.
 # (abd, mcp, pip, dip)
-stand = {"index": (0.0, 0.30, 0.85, 0.85 * COUPLE), "middle": (0.0, 1.00, 0.60, 0.60 * COUPLE)}
+stand = {"index": (-0.0727, 0.7260, 0.0632, 0.0632 * COUPLE), "middle": (-0.1129, 0.9953, 0.1237, 0.1237 * COUPLE)}
 qf = []
 for fname in FINGERS:
     if fname in stand: qf += list(stand[fname])
-q = [0, 0, 0.122, 0.92388, 0, 0.38268, 0] + qf          # free joint: pos(3) + quat(4)
+# Planar qpos: root_x, root_z, root_pitch, then finger joints in tree order.
+q = [-0.0781, 0.1377, 0.8402] + qf
 ctrl = [*stand["index"][:3], *stand["middle"][:3]]
 scene = f"""<mujoco model="thing_hand scene">
   <include file="thing_hand.xml"/>

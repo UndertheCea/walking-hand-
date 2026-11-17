@@ -18,10 +18,10 @@ The question we want to answer: how much does tactile feedback help learned walk
 
 With two fingers, the hand rests on one fingertip whenever the other finger swings. That is a point contact, so the palm tips over unless something else supports it. The Thing hand already shows this: started in its `stand` keyframe with the fingers holding position, it falls onto its side within about 2 s. We need to pick one:
 
-- **Palm heel or forearm stub drags on the ground (recommended).** The wrist is a passive third support and the fingers pull the hand forward. It is statically stable, so the fixed-gait baseline can work. In the Thing hand this is `STUB_CONTACT = True` in `build_hand.py`.
-- **Dynamic gait with no drag.** Much harder. The open-loop baseline will probably fall, which makes the comparison less informative.
+- **Palm heel or forearm stub drags on the ground.** The wrist is a passive third support and the fingers pull the hand forward. Optional via `stub_contact=True` / `STUB_CONTACT`.
+- **Planar base + two fingertips (chosen for stand).** Slide x, slide z, hinge pitch — matches the proposal and makes double-support statically stable without a stub. Open-loop `stand` holds ≥20 s with the palm ~6–8 cm up.
 
-Decision: _not yet made_
+Decision: **Planar base; two-finger stand by default** (`stub_contact=False`). Stub remains available as an option.
 
 ## Phases
 
@@ -29,13 +29,13 @@ Decision: _not yet made_
 
 - [x] Hand model: the "Thing" hand (`models/thing_hand/`, MJCF built from the MakeHuman mesh). Index and middle each have 3 actuated joints (MCP abduction, MCP flexion, PIP flexion), and DIP is coupled to PIP at 0.7.
 - [x] MuJoCo 3.17.0 in Docker, with the interactive viewer and offscreen rendering.
-- [ ] Base: the Thing hand has a 6-DOF free base (3D). Decide whether to keep it or constrain it to planar (x-slide, z-slide, pitch hinge) as in the proposal.
+- [x] Base: planar (x-slide, z-slide, pitch hinge). Free 3D base dropped because two point contacts cannot hold open-loop in 3D.
 - [x] Thumb, ring and little fingers fixed in a curled pose.
 - [ ] Actuators: the model currently uses MuJoCo position actuators (`kp=8`, `kv=0.15`, force limit ±1). For the baseline's impedance law to run in Python, switch to torque (`motor`) actuators with the same limits so all three controllers share one low-level path.
 - [x] Fingertip contact-force sensors (`index_touch`, `middle_touch`).
 - [x] Settable floor friction (`floor` geom in `scene.xml`).
-- [x] Gymnasium env (`walking_hand/`, `WalkingHand-v0` and `WalkingHandTactile-v0`): reset, step, fall check (palm height and tilt), friction randomization, external pushes.
-- [ ] A statically stable start pose. Holding the current `stand` keyframe, the hand falls within about 0.3 s.
+- [x] Gymnasium env (`walking_hand/`, `WalkingHand-v1` / `WalkingHandTactile-v1`, with v0 aliases): reset, step, fall check (palm height and tilt), friction randomization, external pushes.
+- [x] A statically stable two-finger `stand` keyframe (CoM between tips, planar base, straighter PIP). Open-loop hold lasts the full 20 s episode with palm ~10 cm up.
 - [ ] Agree on the env interface (observation, action, info fields) in the first few days so the other phases can start in parallel.
 
 ### Phase 2: Classical baseline (~1 week, overlaps Phase 1)
@@ -103,4 +103,5 @@ Newest first. Every env change adds an entry here (see `CLAUDE.md`, rule 3).
 
 | Date | Env version | Change | Action for training branches |
 | --- | --- | --- | --- |
+| 2026-11-17 | `WalkingHand-v1`, `WalkingHandTactile-v1` (v0 aliases kept) | Planar base (x, z, pitch). Tall two-finger `stand` (straighter PIP, CoM between tips); open-loop hold ≥20 s, palm ~10 cm (`stub_contact=False`). Search: `scripts/search_two_finger_stand.py`. | Rebase onto new `main`. Retrain / retune; freejoint-based results are not comparable. Prefer env ids `*-v1`. |
 | 2026-11-16 | `WalkingHand-v0`, `WalkingHandTactile-v0` | First version: Thing hand, MuJoCo 3.17.0, 6 position actuators, 28-D obs (+2 tactile), forward-velocity reward, fall termination, friction and push options (commit `3fc4138`). | None (first version). |

@@ -11,6 +11,8 @@ ctrlrange (index/middle x abd, mcp, pip). DIP follows PIP through the model's
 0.7 coupling. Control runs at 1 / (timestep * frame_skip) = 50 Hz by default.
 
 World frame: +x is forward (the fingers point along +x at reset), +z is up.
+The free-hand model uses a planar base (slide x, slide z, hinge pitch) so
+two-fingertip support can be statically stable.
 """
 from __future__ import annotations
 
@@ -25,6 +27,14 @@ DEFAULT_SCENE = Path(__file__).resolve().parents[2] / "models" / "thing_hand" / 
 
 ACTUATED_JOINTS = ["index_abd", "index_mcp", "index_pip", "middle_abd", "middle_mcp", "middle_pip"]
 TOUCH_SENSORS = ["index_touch", "middle_touch"]
+
+
+def _has_joint(model: mujoco.MjModel, name: str) -> bool:
+    try:
+        model.joint(name)
+        return True
+    except KeyError:
+        return False
 
 
 class ThingHandWalkEnv(gym.Env):
@@ -90,6 +100,16 @@ class ThingHandWalkEnv(gym.Env):
         self.ctrl_lo = m.actuator_ctrlrange[:, 0].copy()
         self.ctrl_hi = m.actuator_ctrlrange[:, 1].copy()
         self.init_key = m.key("stand").id if m.nkey > 0 else None
+        # Planar base (root_x, root_z, root_pitch) or legacy freejoint.
+        self.planar = _has_joint(m, "root_x")
+        if self.planar:
+            self.root_x_adr = m.jnt_qposadr[m.joint("root_x").id]
+            self.root_x_vadr = m.jnt_dofadr[m.joint("root_x").id]
+            self.root_z_vadr = m.jnt_dofadr[m.joint("root_z").id]
+        else:
+            self.root_x_adr = 0
+            self.root_x_vadr = 0
+            self.root_z_vadr = 2
 
         # Optional third support: let the forearm stub touch the floor.
         stub = m.geom("stub").id
@@ -118,6 +138,13 @@ class ThingHandWalkEnv(gym.Env):
     def _palm_rotation(self):
         return self.data.site_xmat[self.imu_site].reshape(3, 3)
 
+    def _base_linvel_world(self):
+        """World-frame linear velocity of the base (planar: y = 0)."""
+        d = self.data
+        if self.planar:
+            return np.array([d.qvel[self.root_x_vadr], 0.0, d.qvel[self.root_z_vadr]])
+        return d.qvel[0:3].copy()
+
     def _upright(self):
         """World-z component of the back-of-hand axis: 1 = palm facing the floor, 0 = on its side."""
         return float(self._palm_rotation()[2, 2])
@@ -136,7 +163,7 @@ class ThingHandWalkEnv(gym.Env):
             d.qvel[self.vadr],                 # 6 actuated joint velocities
             R.T @ np.array([0.0, 0.0, -1.0]),  # 3 gravity direction in the palm frame
             d.sensor("palm_gyro").data,        # 3 palm angular velocity (palm frame)
-            R.T @ d.qvel[0:3],                 # 3 base linear velocity (palm frame)
+            R.T @ self._base_linvel_world(),   # 3 base linear velocity (palm frame)
             [self._palm_height()],             # 1 palm height
             self.prev_action,                  # 6 previous action
         ]
@@ -200,12 +227,12 @@ class ThingHandWalkEnv(gym.Env):
     def step(self, action):
         action = np.asarray(action, dtype=np.float64)
         d = self.data
-        x_before = d.qpos[0]
+        x_before = d.qpos[self.root_x_adr]
         d.ctrl[:] = self._action_to_ctrl(action)
         for _ in range(self.frame_skip):
             self._apply_pushes()
             mujoco.mj_step(self.model, d)
-        x_vel = (d.qpos[0] - x_before) / self.dt
+        x_vel = (d.qpos[self.root_x_adr] - x_before) / self.dt
 
         upright = self._upright()
         height = self._palm_height()
@@ -234,7 +261,7 @@ class ThingHandWalkEnv(gym.Env):
 
     def _get_info(self, friction):
         return {
-            "x_position": float(self.data.qpos[0]),
+            "x_position": float(self.data.qpos[self.root_x_adr]),
             "palm_height": self._palm_height(),
             "upright": self._upright(),
             "touch": self._touch(),
