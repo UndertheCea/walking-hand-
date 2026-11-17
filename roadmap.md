@@ -40,6 +40,8 @@ Decision: **Planar base; two-finger stand by default** (`stub_contact=False`). S
 
 ### Phase 2: Classical baseline (~1 week, overlaps Phase 1)
 
+- [x] Balance-hold first (two-finger, no stub): lean-feedback stand controller around the `stand` targets (`walking_hand/baseline/balance.py`). Rollout: `python scripts/run_balance.py` (`--push` for light pushes). Walking comparison still uses stub drag; this is the pre-walk milestone.
+- [ ] Hand-tune balance gains for push recovery on the tall planar stand (`STAND_CTRL` matches the v1 keyframe). Open-loop already holds 20 s; stretch goal is recovering from `--push`.
 - [ ] Phase clock driving stance and swing fingertip trajectories in the palm frame, index and middle half a cycle apart.
 - [ ] Inverse kinematics for the coupled finger, clamped to joint limits.
 - [ ] Impedance control: `tau = K (q_des - q) - D qdot`, clipped to torque limits.
