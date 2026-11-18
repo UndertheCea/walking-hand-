@@ -40,13 +40,13 @@ Decision: **Planar base; two-finger stand by default** (`stub_contact=False`). S
 
 ### Phase 2: Classical baseline (~1 week, overlaps Phase 1)
 
-- [x] Balance-hold first (two-finger, no stub): lean-feedback stand controller around the `stand` targets (`walking_hand/baseline/balance.py`). Rollout: `python scripts/run_balance.py` (`--push` for light pushes). Walking comparison still uses stub drag; this is the pre-walk milestone.
-- [ ] Hand-tune balance gains for push recovery on the tall planar stand (`STAND_CTRL` matches the v1 keyframe). Open-loop already holds 20 s; stretch goal is recovering from `--push`.
-- [ ] Phase clock driving stance and swing fingertip trajectories in the palm frame, index and middle half a cycle apart.
-- [ ] Inverse kinematics for the coupled finger, clamped to joint limits.
-- [ ] Impedance control: `tau = K (q_des - q) - D qdot`, clipped to torque limits.
-- [ ] Hand-tune step length, step height, frequency, K and D until it walks on nominal friction.
-- [ ] No use of tactile measurements in this controller.
+- [x] **Stand** (balance only, no gait): lean-feedback hold around the tall `stand` targets (`walking_hand/baseline/balance.py`). Rollout: `python scripts/run_balance.py` (`--push` / `mjpython … --render`).
+- [ ] Hand-tune stand balance gains for push recovery (`STAND_CTRL` matches the v1 keyframe).
+- [x] **Walk** (separate from stand): phase clock, index/middle half a cycle apart (`walking_hand/baseline/gait.py`). Rollout: `python scripts/run_walk.py` / `mjpython scripts/run_walk.py --render`.
+- [x] Inverse kinematics for the coupled finger, clamped to joint limits. (`walking_hand/baseline/ik.py`, Jacobian IK with DIP=0.7·PIP)
+- [ ] Impedance control: `tau = K (q_des - q) - D qdot`, clipped to torque limits. (env still uses position actuators; walk sends `q_des` as gym actions and MuJoCo kp/kv is the live PD layer)
+- [x] Walk default uses stance+swing IK (`f=0.5`, L=2.5 cm, H=1.2 cm): palm stays ~10 cm and advances ~1 cm/s (~2 cm/cycle). Fast crawl (palm drops): `--fast`. Rollout: `python scripts/run_walk.py`.
+- [x] No use of tactile measurements in these controllers.
 
 ### Phase 3: RL training (~1.5 weeks)
 

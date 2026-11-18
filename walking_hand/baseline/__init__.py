@@ -1,5 +1,21 @@
-"""Classical baseline controllers (balance hold, later gait)."""
+"""Classical baseline controllers.
 
-from walking_hand.baseline.balance import BalanceHoldController
+Stand (balance only): ``BalanceHoldController`` → ``scripts/run_balance.py``
+Walk (short-step gait): ``WalkController`` → ``scripts/run_walk.py``
+"""
 
-__all__ = ["BalanceHoldController"]
+from walking_hand.baseline.balance import BalanceHoldController, STAND_CTRL, ctrl_to_action
+from walking_hand.baseline.gait import WalkController
+from walking_hand.baseline.ik import FingerIK
+
+# Alias: stand == balance hold (no gait clock).
+StandController = BalanceHoldController
+
+__all__ = [
+    "BalanceHoldController",
+    "StandController",
+    "WalkController",
+    "FingerIK",
+    "STAND_CTRL",
+    "ctrl_to_action",
+]

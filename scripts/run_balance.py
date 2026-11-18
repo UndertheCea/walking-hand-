@@ -1,4 +1,7 @@
-"""Compare open-loop stand hold vs lean-feedback balance (two-finger, no stub).
+"""STAND / balance only (no walking clock).
+
+Holds the tall two-finger stand with lean feedback. For walking, use
+``scripts/run_walk.py`` instead.
 
 Usage (from repo root, with the project venv)::
 
@@ -57,7 +60,7 @@ def run_viewer(args):
     raw = env.unwrapped
     balance = BalanceHoldController()
     obs, info = env.reset(seed=0)
-    print(f"viewer: balance hold, stub off, upright={info['upright']:.3f}")
+    print(f"viewer: STAND (balance hold), stub off, upright={info['upright']:.3f}")
     print("Close the window or Ctrl+C to quit.")
 
     with mujoco.viewer.launch_passive(raw.model, raw.data) as viewer:
@@ -91,7 +94,7 @@ def main():
     hold = lambda obs: obs[22:28]  # previous action = keep reset targets
     balance = BalanceHoldController()
 
-    print(f"WalkingHand-v1  stub_contact=False  pushes={'on' if args.push else 'off'}  seeds={args.seeds}")
+    print(f"STAND  WalkingHand-v1  stub_contact=False  pushes={'on' if args.push else 'off'}  seeds={args.seeds}")
     for name, pol in [("open-loop hold", hold), ("balance hold", balance)]:
         rows = [rollout(env, pol, seed) for seed in range(args.seeds)]
         steps = [r[0] for r in rows]
