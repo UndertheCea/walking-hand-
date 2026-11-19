@@ -38,12 +38,14 @@ Decision: **Planar base + two fingertips.** Slide x, slide z, hinge pitch — do
 ### Phase 2: Classical baseline (~1 week, overlaps Phase 1)
 
 - [x] **Stand** (balance only, no gait): lean-feedback hold around the tall `stand` targets (`walking_hand/baseline/balance.py`). Rollout: `python scripts/run_balance.py` (`--push` / `mjpython … --render`).
-- [ ] Hand-tune stand balance gains for push recovery (`STAND_CTRL` matches the v1 keyframe).
+- [x] Hand-tune stand balance gains for push recovery (`STAND_CTRL` matches the v1 keyframe). Sweep: `python scripts/run_balance.py --sweep --out runs/balance_push` — survive 100% through strong pushes (0.35–0.60 N); balance steadier upright with no push.
 - [x] **Walk** (separate from stand): phase clock, index/middle half a cycle apart (`walking_hand/baseline/gait.py`). Rollout: `python scripts/run_walk.py` / `mjpython scripts/run_walk.py --render`.
 - [x] Inverse kinematics for the coupled finger, clamped to joint limits. (`walking_hand/baseline/ik.py`, Jacobian IK with DIP=0.7·PIP)
-- [ ] Impedance control: `tau = K (q_des - q) - D qdot`, clipped to torque limits. (env still uses position actuators; walk sends `q_des` as gym actions and MuJoCo kp/kv is the live PD layer)
-- [x] Walk default uses stance+swing IK (`f=0.5`, L=2.5 cm, H=1.2 cm): palm stays ~10 cm and advances ~1 cm/s (~2 cm/cycle). Fast crawl (palm drops): `--fast`. Rollout: `python scripts/run_walk.py`.
+- [x] Impedance / low-level tracking: **deferred** Python `τ = K(q_des−q) − D q̇` until Phase 1 torque actuators. Interim: walk/stand send `q_des`; MuJoCo position `kp`/`kv` is the PD layer (same path for all controllers).
+- [x] Walk default uses stance+swing IK (`f=0.5`, L=2.5 cm, H=1.2 cm): palm stays ~10 cm and advances ~1 cm/s (~2 cm/cycle). Fast crawl (palm drops): `--fast`. Rollout: `python scripts/run_walk.py`. Push sweep: `python scripts/run_walk.py --sweep --out runs/walk_push` — survive 100%, ~1 cm/s, palm ~10 cm through strong pushes.
 - [x] No use of tactile measurements in these controllers.
+
+Phase 2 closed for the classical baseline (stand + elevated walk + sweep evidence). Remaining shared low-level work is the Phase 1 motor-actuator switch.
 
 ### Phase 3: RL training (~1.5 weeks)
 
