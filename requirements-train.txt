@@ -1,0 +1,8 @@
+# Training and evaluation dependencies (scripts/train_ppo.py, eval_policy.py, run_matrix.py).
+# Kept separate from requirements.txt on purpose: requirements.txt is an env file
+# (see CLAUDE.md), and these libraries do not change the simulation.
+# Install with: pip install -r requirements.txt -r requirements-train.txt
+stable-baselines3>=2.4,<3
+tensorboard
+matplotlib
+imageio[ffmpeg]
