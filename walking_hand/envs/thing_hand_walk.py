@@ -45,7 +45,6 @@ class ThingHandWalkEnv(gym.Env):
         scene_path: str | Path = DEFAULT_SCENE,
         tactile: bool = False,
         frame_skip: int = 10,
-        stub_contact: bool = False,
         # Reward weights (starting point, expect to tune).
         forward_reward_weight: float = 20.0,
         alive_bonus: float = 0.05,
@@ -110,11 +109,6 @@ class ThingHandWalkEnv(gym.Env):
             self.root_x_adr = 0
             self.root_x_vadr = 0
             self.root_z_vadr = 2
-
-        # Optional third support: let the forearm stub touch the floor.
-        stub = m.geom("stub").id
-        m.geom_contype[stub] = 1 if stub_contact else 0
-        m.geom_conaffinity[stub] = 1 if stub_contact else 0
 
         self.action_space = spaces.Box(-1.0, 1.0, shape=(m.nu,), dtype=np.float32)
         obs_dim = 6 + 6 + 3 + 3 + 3 + 1 + m.nu + (len(TOUCH_SENSORS) if tactile else 0)

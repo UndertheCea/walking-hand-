@@ -17,7 +17,7 @@
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" friction="1.0 0.005 0.0001"/>
   </worldbody>
   <keyframe>
-    <!-- Tall planar two-finger stand (stub off): straighter PIP, CoM between tips, palm ~10 cm; holds ≥20 s. -->
+    <!-- Tall planar two-finger stand: straighter PIP, CoM between tips, palm ~10 cm; holds ≥20 s. -->
     <key name="stand" qpos="-0.0781 0.1377 0.8402 -0.0727 0.7260 0.0632 0.0443 -0.1129 0.9953 0.1237 0.0866" ctrl="-0.0727 0.7260 0.0632 -0.1129 0.9953 0.1237"/>
   </keyframe>
 </mujoco>

@@ -2,7 +2,7 @@
 
 Holds the stand joint targets and adds small MCP/PIP/abd offsets from the
 palm-frame gravity direction (and optional gyro damping) so the fingertips
-stay under the mass. Designed for ``stub_contact=False``.
+stay under the mass on the planar two-finger stand.
 
 Observation layout matches ``ThingHandWalkEnv._get_obs`` (non-tactile):
     q (6), qd (6), g_palm (3), gyro (3), v_palm (3), height (1), prev_action (6)

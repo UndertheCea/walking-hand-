@@ -43,7 +43,7 @@ def rollout(env, policy, seed):
 
 
 def make_env(args, *, render: bool = False):
-    kwargs = dict(stub_contact=False)
+    kwargs = {}
     if args.push:
         kwargs["push_force_range"] = (0.15, 0.35)
         kwargs["push_interval_range"] = (1.0, 2.0)
@@ -60,7 +60,7 @@ def run_viewer(args):
     raw = env.unwrapped
     balance = BalanceHoldController()
     obs, info = env.reset(seed=0)
-    print(f"viewer: STAND (balance hold), stub off, upright={info['upright']:.3f}")
+    print(f"viewer: STAND (balance hold), upright={info['upright']:.3f}")
     print("Close the window or Ctrl+C to quit.")
 
     with mujoco.viewer.launch_passive(raw.model, raw.data) as viewer:
@@ -94,7 +94,7 @@ def main():
     hold = lambda obs: obs[22:28]  # previous action = keep reset targets
     balance = BalanceHoldController()
 
-    print(f"STAND  WalkingHand-v1  stub_contact=False  pushes={'on' if args.push else 'off'}  seeds={args.seeds}")
+    print(f"STAND  WalkingHand-v1  pushes={'on' if args.push else 'off'}  seeds={args.seeds}")
     for name, pol in [("open-loop hold", hold), ("balance hold", balance)]:
         rows = [rollout(env, pol, seed) for seed in range(args.seeds)]
         steps = [r[0] for r in rows]

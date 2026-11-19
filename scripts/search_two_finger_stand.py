@@ -1,4 +1,4 @@
-"""Search for a two-finger stand keyframe on the planar base (stub off).
+"""Search for a two-finger stand keyframe on the planar base.
 
 Seats both tips on the floor with the projected CoM between them, then holds
 position actuators and scores survival with palm-height / upright thresholds.
@@ -70,9 +70,6 @@ def main():
 
     model = mujoco.MjModel.from_xml_path(str(SCENE))
     data = mujoco.MjData(model)
-    stub = model.geom("stub").id
-    model.geom_contype[stub] = 0
-    model.geom_conaffinity[stub] = 0
     if "root_x" not in {model.joint(i).name for i in range(model.njnt)}:
         raise SystemExit("scene must use the planar base (root_x / root_z / root_pitch)")
 

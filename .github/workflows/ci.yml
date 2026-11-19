@@ -54,7 +54,7 @@ jobs:
           echo "Changed files:"; echo "$changed" | sed 's/^/  /'
 
           # Env side: anything that changes the simulation or the env, plus the env tooling scripts.
-          env_re='^(models/|walking_hand/|docker/|requirements\.txt$|docker-compose\.yml$|\.dockerignore$|scripts/(check_env|view|render)\.py$)'
+          env_re='^(models/|walking_hand/|docker/|requirements\.txt$|docker-compose\.yml$|\.dockerignore$|scripts/(check_env|view|render|search_two_finger_stand)\.py$)'
           # Docs and CI belong to neither side.
           docs_re='(\.md$|^\.github/)'
           env_files=$(echo "$changed" | grep -E "$env_re" || true)

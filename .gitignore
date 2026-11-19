@@ -18,7 +18,9 @@ wandb/
 .idea/
 *.swp
 
+# MuJoCo
+MUJOCO_LOG.TXT
+
 # OS
 .DS_Store
 Thumbs.db
-MUJOCO_LOG.TXT

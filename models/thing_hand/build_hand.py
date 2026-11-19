@@ -105,12 +105,10 @@ ABD_RANGE = 0.35   # rad (~20 deg) each side for the abduction joints
 # ---- Mass budget (kg), set to match the planned hardware. ----
 # Default: 4x Dynamixel XL330 in the palm (~18 g each), PLA shell, small controller + IMU, tethered power.
 MASS = {
-    "palm": 0.170,        # shell ~70 g + 4 motors ~72 g + electronics/cables ~28 g
-    "stub": 0.020,        # forearm shell
+    "palm": 0.190,        # shell + former forearm mass (~20 g) + 4 motors + electronics
     "active": (0.010, 0.006, 0.004),   # index/middle: prox (pulley, bearings), mid (linkage), dist (pad)
     "passive": (0.004, 0.003, 0.002),  # thumb/ring/pinky (rigid): hollow shells
 }
-STUB_CONTACT = False   # False: only fingertips (and fingers) touch the ground; True: forearm stub acts as a tail
 # Planar base (x, z, pitch) makes two-fingertip double-support statically stable.
 PLANAR_BASE = True
 COUPLE = 0.7
@@ -225,8 +223,6 @@ xml = f"""<!--
       <body name="palm">
         <site name="imu" pos="{palm_len/2:.4f} {palm_yc:.4f} {palm_zc:.4f}" size="0.005"/>
         <geom name="palm_col" class="col" type="box" size="{palm_len/2:.4f} {palm_w:.4f} {palm_th:.4f}" pos="{palm_len/2:.4f} {palm_yc:.4f} {palm_zc:.4f}" mass="{MASS['palm']}"/>
-        <!-- forearm stub: low friction; collides only if STUB_CONTACT=True in build_hand.py -->
-        <geom name="stub" class="col" type="capsule" size="0.022" fromto="-0.005 {palm_yc:.4f} {palm_zc:.4f} {-FOREARM_KEEP+0.015:.4f} {palm_yc:.4f} {palm_zc:.4f}" friction="0.05 0.005 0.0001" mass="{MASS['stub']}"{'' if STUB_CONTACT else ' contype="0" conaffinity="0"'}/>
 {chr(10).join(body_lines)}
       </body>
     </body>
@@ -309,7 +305,7 @@ open(os.path.join(out, "thing_hand_fixed.xml"), "w").write(
     xml.replace("@BASE@", f'pos="0 0 0.30" quat="{QPITCH}"').replace("@ROOTJOINT@", "      <!-- base fixed to the world (inspection) -->")
        .replace('<mujoco model="thing_hand">', '<mujoco model="thing_hand_fixed">'))
 
-# Tall two-finger stand (search + ≥20 s hold with STUB_CONTACT=False, planar base):
+# Tall two-finger stand (search + ≥20 s hold on planar base):
 # straighter PIP (extended legs), CoM between tips, palm ~10 cm off the floor.
 # (abd, mcp, pip, dip)
 stand = {"index": (-0.0727, 0.7260, 0.0632, 0.0632 * COUPLE), "middle": (-0.1129, 0.9953, 0.1237, 0.1237 * COUPLE)}

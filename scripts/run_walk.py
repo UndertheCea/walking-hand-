@@ -57,7 +57,7 @@ def rollout(env, make_policy, seed):
 
 
 def make_env(args):
-    kwargs = dict(stub_contact=False)
+    kwargs = {}
     if args.push:
         kwargs["push_force_range"] = (0.15, 0.35)
         kwargs["push_interval_range"] = (1.0, 2.0)
@@ -158,7 +158,7 @@ def main():
     env = make_env(args)
     mode = "fast" if args.fast else "elevated"
     print(
-        f"WALK  mode={mode}  WalkingHand-v1  stub=off  f={args.frequency}Hz  "
+        f"WALK  mode={mode}  WalkingHand-v1  f={args.frequency}Hz  "
         f"L={args.step_length} H={args.step_height}  minh={args.min_palm_height}  "
         f"pushes={'on' if args.push else 'off'}"
     )

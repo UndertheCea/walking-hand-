@@ -16,12 +16,9 @@ The question we want to answer: how much does tactile feedback help learned walk
 
 ## Open decision: single-finger support
 
-With two fingers, the hand rests on one fingertip whenever the other finger swings. That is a point contact, so the palm tips over unless something else supports it. The Thing hand already shows this: started in its `stand` keyframe with the fingers holding position, it falls onto its side within about 2 s. We need to pick one:
+With two fingers, the hand rests on one fingertip whenever the other finger swings. That is a point contact, so the palm tips over unless something else supports it.
 
-- **Palm heel or forearm stub drags on the ground.** The wrist is a passive third support and the fingers pull the hand forward. Optional via `stub_contact=True` / `STUB_CONTACT`.
-- **Planar base + two fingertips (chosen for stand).** Slide x, slide z, hinge pitch — matches the proposal and makes double-support statically stable without a stub. Open-loop `stand` holds ≥20 s with the palm ~6–8 cm up.
-
-Decision: **Planar base; two-finger stand by default** (`stub_contact=False`). Stub remains available as an option.
+Decision: **Planar base + two fingertips.** Slide x, slide z, hinge pitch — double-support is statically stable. Open-loop `stand` holds ≥20 s with the palm ~10 cm up. The old forearm-stub third support was removed.
 
 ## Phases
 
@@ -105,5 +102,6 @@ Newest first. Every env change adds an entry here (see `CLAUDE.md`, rule 3).
 
 | Date | Env version | Change | Action for training branches |
 | --- | --- | --- | --- |
-| 2026-11-17 | `WalkingHand-v1`, `WalkingHandTactile-v1` (v0 aliases kept) | Planar base (x, z, pitch). Tall two-finger `stand` (straighter PIP, CoM between tips); open-loop hold ≥20 s, palm ~10 cm (`stub_contact=False`). Search: `scripts/search_two_finger_stand.py`. | Rebase onto new `main`. Retrain / retune; freejoint-based results are not comparable. Prefer env ids `*-v1`. |
+| 2026-11-18 | `WalkingHand-v1`, `WalkingHandTactile-v1` | Remove forearm stub geom and `stub_contact` / `STUB_CONTACT`. Fold former stub mass (20 g) into the palm. Default contact behaviour unchanged (stub was already off). | Rebase onto new `main`. Quick re-check stand/walk; no env id bump. |
+| 2026-11-17 | `WalkingHand-v1`, `WalkingHandTactile-v1` (v0 aliases kept) | Planar base (x, z, pitch). Tall two-finger `stand` (straighter PIP, CoM between tips); open-loop hold ≥20 s, palm ~10 cm. Search: `scripts/search_two_finger_stand.py`. | Rebase onto new `main`. Retrain / retune; freejoint-based results are not comparable. Prefer env ids `*-v1`. |
 | 2026-11-16 | `WalkingHand-v0`, `WalkingHandTactile-v0` | First version: Thing hand, MuJoCo 3.17.0, 6 position actuators, 28-D obs (+2 tactile), forward-velocity reward, fall termination, friction and push options (commit `3fc4138`). | None (first version). |

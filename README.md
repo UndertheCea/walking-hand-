@@ -43,7 +43,6 @@ Options for the experiments (pass to `gym.make` as keywords):
 
 - `friction_range=(0.3, 1.5)` randomizes floor friction each reset. `env.reset(options={"friction": 0.2})` sets it exactly, for evaluation on unseen values.
 - `push_force_range=(0.2, 0.8)` applies horizontal pushes (N) to the palm every 1–3 s (`push_interval_range`) for 0.1 s (`push_duration`). `info["pushing"]` marks the pushed steps.
-- `stub_contact=True` lets the forearm stub touch the floor as a third support (default is off).
 - `render_mode="rgb_array"` for video frames (`MUJOCO_GL=osmesa` in the container), or `"human"` for the live viewer.
 
 `info` carries `x_position`, `x_velocity`, `palm_height`, `upright`, `touch`, `friction` and each reward term.
@@ -54,7 +53,7 @@ Check everything with:
 docker compose run --rm mujoco python -W ignore scripts/check_env.py
 ```
 
-Current behaviour: holding the `stand` pose on the planar base, the hand stays up for the full 20 s episode (two fingertips, straighter legs, palm ~10 cm) with `stub_contact=False`.
+Current behaviour: holding the `stand` pose on the planar base, the hand stays up for the full 20 s episode (two fingertips, straighter legs, palm ~10 cm).
 
 ## The Thing hand (`models/thing_hand/`)
 
@@ -75,4 +74,4 @@ Actuated: index and middle fingers, each with MCP abduction, MCP flexion and PIP
 
 Sensors: fingertip touch (`index_touch`, `middle_touch`), joint positions, velocities and actuator forces for the 6 actuated joints, and a palm IMU (orientation, gyro, accelerometer, position).
 
-`build_hand.py` is the source of the XML files. Change parameters there (masses, gains, `STUB_CONTACT`, coupling ratio) and regenerate rather than editing the XML by hand.
+`build_hand.py` is the source of the XML files. Change parameters there (masses, gains, coupling ratio) and regenerate rather than editing the XML by hand.
